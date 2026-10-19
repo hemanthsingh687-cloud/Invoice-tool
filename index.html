@@ -3,86 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice Generator</title>
+    <title>Invoice Generator - Mohan Electricals</title>
     <style>
-        body { font-family: sans-serif; margin: 20px; padding: 20px; border: 1px solid #ccc; max-width: 400px; }
+        body { font-family: sans-serif; margin: 20px; padding: 20px; border: 1px solid #ccc; max-width: 600px; margin: auto; }
+        .shop-title { text-align: center; font-size: 22px; font-weight: bold; margin-bottom: 5px; }
         .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
         input { width: 100%; padding: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; cursor: pointer; }
-        #invoice { margin-top: 20px; padding: 15px; border: 1px solid #000; display: none; }
+        .item-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
+        .item-row input { flex: 1; }
+        button { padding: 10px 15px; background-color: #28a745; color: white; border: none; cursor: pointer; border-radius: 4px; }
+        button.danger { background-color: #dc3545; }
+        button:hover { opacity: 0.9; }
+        #invoice { margin-top: 20px; padding: 20px; border: 1px solid #000; display: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 14px; }
+        th { background-color: #f2f2f2; }
+        .text-right { text-align: right; }
     </style>
 </head>
 <body>
 
-    <h2> <strong><centre>MOHAN ELECTRICALS</centre></strong></h2>
-    
-    <h2>Invoice Generator</h2>
+    <div class="shop-title">MOHAN ELECTRICALS</div>
+    <h3 style="text-align: center; margin-top: 0;">Invoice Generator</h3>
 
     <div class="form-group">
         <label>Customer Name:</label>
-        <input type="text" id="customer">
+        <input type="text" id="customer" placeholder="Enter customer name">
     </div>
 
-    <div class="form-group">
-        <label>Product Name:</label>
-        <input type="text" id="product">
+    <h4>Products / Items</h4>
+    <div id="itemsContainer">
+        <div class="item-row">
+            <input type="text" placeholder="Product Name" class="prod-name">
+            <input type="number" placeholder="Qty" class="prod-qty" value="1" min="1" style="width: 70px;">
+            <input type="number" placeholder="Rate (₹)" class="prod-rate" min="0" style="width: 90px;">
+            <input type="number" placeholder="Disc (%)" class="prod-disc" value="0" min="0" max="100" style="width: 80px;">
+            <button type="button" class="danger" onclick="removeItem(this)">X</button>
+        </div>
     </div>
-
-    <div class="form-group">
-        <label>Quantity:</label>
-        <input type="number" id="quantity" value="1">
-    </div>
-
-    <div class="form-group">
-        <label>Rate (Price):</label>
-        <input type="number" id="rate">
-    </div>
-
-    <div class="form-group">
-        <label>Discount (%):</label>
-        <input type="number" id="discount" value="0">
-    </div>
-
-    <button onclick="generateBill()">Generate Bill</button>
+    
+    <button type="button" onclick="addItemRow()" style="margin-bottom: 15px; background-color: #007bff;">+ Add Item</button>
+    <br>
+    <button type="button" onclick="generateBill()" style="width: 100%; font-size: 16px;">Generate Bill</button>
 
     <div id="invoice">
-        <h2> <strong><centre>MOHAN ELECTRICALS</centre></strong></h2>
-        <h3>Invoice</h3>
-        <p><strong>Customer:</strong> <span id="outCustomer"></span></p>
-        <p><strong>Product:</strong> <span id="outProduct"></span></p>
-        <p><strong>Qty:</strong> <span id="outQuantity"></span></p>
-        <p><strong>Rate:</strong> <span id="outRate"></span></p>
-        <p><strong>Discount:</strong> <span id="outDiscount"></span>%</p>
-        <hr>
-        <p><strong>Final Total:</strong> <span id="outTotal"></span></p>
-        <button onclick="window.print()">Print Bill</button>
+        <div class="shop-title" id="outShopName">MOHAN ELECTRICALS</div>
+        <div style="text-align: center; font-size: 13px; color: #555; margin-bottom: 15px;">Tax Invoice</div>
+        
+        <p><strong>Date:</strong> <span id="outDate"></span></p>
+        <p><strong>Customer Name:</strong> <span id="outCustomer"></span></p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Rate</th>
+                    <th>Disc%</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody id="invoiceItems">
+            </tbody>
+        </table>
+
+        <div style="margin-top: 15px; text-align: right;">
+            <p style="font-size: 16px;"><strong>Grand Total: ₹<span id="outTotal"></span></strong></p>
+        </div>
+
+        <button onclick="window.print()" style="margin-top: 15px; width: 100%;">Print Bill</button>
     </div>
 
     <script>
-        function generateBill() {
-            const customer = document.getElementById('customer').value;
-            const product = document.getElementById('product').value;
-            const quantity = parseFloat(document.getElementById('quantity').value);
-            const rate = parseFloat(document.getElementById('rate').value);
-            const discount = parseFloat(document.getElementById('discount').value);
+        function addItemRow() {
+            const container = document.getElementById('itemsContainer');
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.innerHTML = `
+                <input type="text" placeholder="Product Name" class="prod-name">
+                <input type="number" placeholder="Qty" class="prod-qty" value="1" min="1" style="width: 70px;">
+                <input type="number" placeholder="Rate (₹)" class="prod-rate" min="0" style="width: 90px;">
+                <input type="number" placeholder="Disc (%)" class="prod-disc" value="0" min="0" max="100" style="width: 80px;">
+                <button type="button" class="danger" onclick="removeItem(this)">X</button>
+            `;
+            container.appendChild(row);
+        }
 
-            if (!customer || !product || isNaN(quantity) || isNaN(rate)) {
-                alert('Please fill in all required fields.');
+        function removeItem(btn) {
+            const rows = document.getElementsByClassName('item-row');
+            if (rows.length > 1) {
+                btn.parentElement.remove();
+            } else {
+                alert('At least one item row is required.');
+            }
+        }
+
+        function generateBill() {
+            const customer = document.getElementById('customer').value.trim();
+            const prodNames = document.getElementsByClassName('prod-name');
+            const prodQtys = document.getElementsByClassName('prod-qty');
+            const prodRates = document.getElementsByClassName('prod-rate');
+            const prodDiscs = document.getElementsByClassName('prod-disc');
+
+            if (!customer) {
+                alert('Please enter the customer name.');
                 return;
             }
 
-            const subtotal = quantity * rate;
-            const discountAmount = (subtotal * discount) / 100;
-            const total = subtotal - discountAmount;
+            let items = [];
+            for (let i = 0; i < prodNames.length; i++) {
+                const name = prodNames[i].value.trim();
+                const qty = parseFloat(prodQtys[i].value);
+                const rate = parseFloat(prodRates[i].value);
+                const disc = parseFloat(prodDiscs[i].value) || 0;
 
+                if (!name || isNaN(qty) || isNaN(rate)) {
+                    alert('Please fill out all product fields correctly.');
+                    return;
+                }
+
+                const subtotal = qty * rate;
+                const discountAmount = (subtotal * disc) / 100;
+                const total = subtotal - discountAmount;
+
+                items.push({ name, qty, rate, disc, total });
+            }
+
+            // Set Date in Indian Format
+            const currentDate = new Date().toLocaleDateString('en-IN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+
+            document.getElementById('outDate').innerText = currentDate;
             document.getElementById('outCustomer').innerText = customer;
-            document.getElementById('outProduct').innerText = product;
-            document.getElementById('outQuantity').innerText = quantity;
-            document.getElementById('outRate').innerText = rate.toFixed(2);
-            document.getElementById('outDiscount').innerText = discount;
-            document.getElementById('outTotal').innerText = total.toFixed(2);
+            document.getElementById('outShopName').innerText = "MOHAN ELECTRICALS";
 
+            // Render items in table
+            const invoiceItemsBody = document.getElementById('invoiceItems');
+            invoiceItemsBody.innerHTML = '';
+            
+            let grandTotal = 0;
+            items.forEach(item => {
+                grandTotal += item.total;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.qty}</td>
+                    <td>₹${item.rate.toFixed(2)}</td>
+                    <td>${item.disc}%</td>
+                    <td class="text-right">₹${item.total.toFixed(2)}</td>
+                `;
+                invoiceItemsBody.appendChild(tr);
+            });
+
+            document.getElementById('outTotal').innerText = grandTotal.toFixed(2);
             document.getElementById('invoice').style.display = 'block';
         }
     </script>
