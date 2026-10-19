@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Generator</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; padding: 20px; border: 1px solid #ccc; max-width: 400px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; cursor: pointer; }
+        #invoice { margin-top: 20px; padding: 15px; border: 1px solid #000; display: none; }
+    </style>
+</head>
+<body>
+
+    <h2>Invoice Generator</h2>
+
+    <div class="form-group">
+        <label>Customer Name:</label>
+        <input type="text" id="customer">
+    </div>
+
+    <div class="form-group">
+        <label>Product Name:</label>
+        <input type="text" id="product">
+    </div>
+
+    <div class="form-group">
+        <label>Quantity:</label>
+        <input type="number" id="quantity" value="1">
+    </div>
+
+    <div class="form-group">
+        <label>Rate (Price):</label>
+        <input type="number" id="rate">
+    </div>
+
+    <div class="form-group">
+        <label>Discount (%):</label>
+        <input type="number" id="discount" value="0">
+    </div>
+
+    <button onclick="generateBill()">Generate Bill</button>
+
+    <div id="invoice">
+        <h3>Invoice</h3>
+        <p><strong>Customer:</strong> <span id="outCustomer"></span></p>
+        <p><strong>Product:</strong> <span id="outProduct"></span></p>
+        <p><strong>Qty:</strong> <span id="outQuantity"></span></p>
+        <p><strong>Rate:</strong> <span id="outRate"></span></p>
+        <p><strong>Discount:</strong> <span id="outDiscount"></span>%</p>
+        <hr>
+        <p><strong>Final Total:</strong> <span id="outTotal"></span></p>
+        <button onclick="window.print()">Print Bill</button>
+    </div>
+
+    <script>
+        function generateBill() {
+            const customer = document.getElementById('customer').value;
+            const product = document.getElementById('product').value;
+            const quantity = parseFloat(document.getElementById('quantity').value);
+            const rate = parseFloat(document.getElementById('rate').value);
+            const discount = parseFloat(document.getElementById('discount').value);
+
+            if (!customer || !product || isNaN(quantity) || isNaN(rate)) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            const subtotal = quantity * rate;
+            const discountAmount = (subtotal * discount) / 100;
+            const total = subtotal - discountAmount;
+
+            document.getElementById('outCustomer').innerText = customer;
+            document.getElementById('outProduct').innerText = product;
+            document.getElementById('outQuantity').innerText = quantity;
+            document.getElementById('outRate').innerText = rate.toFixed(2);
+            document.getElementById('outDiscount').innerText = discount;
+            document.getElementById('outTotal').innerText = total.toFixed(2);
+
+            document.getElementById('invoice').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
